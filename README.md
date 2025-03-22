@@ -1,69 +1,129 @@
-# TypeScript x Express x Node.js
+# 📄 @oshuster/pdf-generator
 
-This repository contains a basic TypeScript Express application that utilizes Node.js for server-side functionality. It is configured with Nodemon for automatic server restarts during development and uses ts-node for TypeScript execution.
+A lightweight utility library for generating PDF files from HTML using [Playwright](https://playwright.dev/), with support for style caching and page pooling.
 
-If you are not familiar with a TypeScript workflow, consider checking out [the JavaScript branch](https://github.com/c99rahul/ts-node-express/tree/javascript) of this repository.
+---
 
-Feeling lost? Go through [the tutorial](https://blog.logrocket.com/how-to-set-up-node-typescript-express/) that this repository is built upon.
+## 🚀 Features
 
-![Monitoring the Changes Detected By Nodemon](https://github.com/c99rahul/ts-node-express/assets/70071346/888bfc19-7034-4270-9696-04fc2b9fcb29)
+- Generate PDF from raw HTML
+- Inject custom CSS styles for documents by name or type
+- Reuse pages with an internal page pool
+- Designed for use in gRPC or other service backends
 
-## Prerequisites
+---
 
-Before you begin, ensure you have the following installed on your machine:
+## 📦 Installation
 
-- [Node.js](https://nodejs.org/): Ensure that Node.js, preferably version 16 or higher, is installed on your system, as this project utilizes the latest versions of TypeScript and Nodemon.
-- [npm](https://www.npmjs.com/): npm is the package manager for Node.js and comes with the Node.js installation.
-
-## Installation
-
-Clone the repository to your local machine:
-
-```
-git clone https://github.com/c99rahul/ts-node-express.git
+```bash
+npm install @oshuster/pdf-generator --registry=https://npm.pkg.github.com/
 ```
 
-Navigate to the project directory:
+Or using pnpm:
 
-```
-cd ts-node-express/
-```
-
-Install the project dependencies including TypeScript and Nodemon:
-
-```
-npm i
+```bash
+pnpm add @oshuster/pdf-generator
 ```
 
-## Usage
+## 🧩 Exports
 
-For development purposes, you can run the application using Nodemon to automatically restart the server when changes are detected. Execute the following command:
-
-```
-npm run dev
-```
-
-This will start the server at `http://localhost:3000` by default. You can change the port in the `src/index.ts` file or create an `.env` file to manage the environt-specific variables separately.
-
-For production, you can build the TypeScript files and then start the server. Run the following commands:
-
-```
-npm run build
-npm start
+```javascript
+import {
+  browserLauncher,
+  closeBrowser,
+  getPage,
+  releasePage,
+  loadStylesIntoCache,
+  generateDocumentPdfFromHtml,
+  generatePdfFromHtml,
+} from '@oshuster/pdf-generator';
 ```
 
-## Project Structure
+## ⚙️ Usage
 
-The project structure is organized as follows:
+1. Initialize browser and load styles (once on startup)
 
-- `src`: Contains TypeScript source files
-    - `index.ts`: Configures and starts the Express application
-- `dist`: Output directory created during build for compiled TypeScript files
-- `package.json`: Project configuration and dependencies
-- `tsconfig.json`: TypeScript configuration
+```javascript
+await browserLauncher();
+await loadStylesIntoCache('/path/to/styles/documents');
+await loadStylesIntoCache('/path/to/styles/all-pdf-styles');
+```
 
-You can customize the project configuration i nthe `tsconfig.json` file and adjust the server settings in the `src/index.ts` file.
+2. Generate PDF using document name(s)
 
-## License
+```javascript
+const page = await getPage();
 
-This project is licensed under the MIT License - see the [LICENSE](/LICENSE) file for details.
+const buffer = await generateDocumentPdfFromHtml({
+  html: '<html><body>Hello World</body></html>',
+  docName: ['F0103308'],
+  landscape: false,
+  page,
+});
+
+releasePage(page);
+```
+
+3. Generate PDF using a document type (e.g., 0.css, 1.css)
+
+```javascript
+const page = await getPage();
+
+const buffer = await generatePdfFromHtml({
+  html: '<html><body>Another document</body></html>',
+  docType: 0,
+  landscape: true,
+  page,
+});
+
+releasePage(page);
+```
+
+## 🧾 Types
+
+`DocPdfRequestWithPage`
+
+```javascript
+{
+  html: string;
+  docName: string[];
+  landscape?: boolean;
+  page: Page;
+}
+```
+
+`UniPdfRequestWithPage`
+
+```javascript
+{
+  html: string;
+  docType: number;
+  landscape?: boolean;
+  page: Page;
+}
+```
+
+## 🧼 Cleanup
+
+Be sure to close the browser on shutdown:
+
+```javascript
+await closeBrowser();
+```
+
+## 🔧 Notes
+
+- Environment variable MAX_PAGES can be used to control the internal page pool size (default: 5)
+
+- Works best in backend environments with headless Chromium
+
+## 🛠 Dependencies
+
+- [Playwright](https://playwright.dev/)
+- Node.js 18+
+
+## 📄 License
+
+### MIT
+
+Developed by [@oshuster](https://github.com/oshuster)
