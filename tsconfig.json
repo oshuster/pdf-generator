@@ -2,10 +2,20 @@
   "compilerOptions": {
     "target": "es2016",
     "module": "commonjs",
+    "declaration": true, // генерує *.d.ts
+    "declarationDir": "./dist", // кладе типи у dist
+    "emitDeclarationOnly": false, // типи + js
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
-  }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
